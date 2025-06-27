@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <script src="{% static 'js/global.js' %}?v=2"></script>
+</head>
+<body>
+
+    <!-- 🌐 Global Header -->
+    {% if header_section %}
+    <header>
+        <div id="section-{{ header_section.id }}" class="iframe-wrapper section-type-header">
+            <iframe
+                src="/static/section_assets/{{ header_section.id }}/preview.html"
+                onload="resizeIframe(this)"
+                title="Header Section"
+            ></iframe>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- 🧩 Main Page Sections -->
+    <main>
+        {% for section in sections %}
+        <div id="section-{{ section.section.id }}" class="iframe-wrapper section-type-{{ section.section.section_type|default:"main" }}">
+            <iframe
+                src="/static/section_assets/{{ section.section.id }}/preview.html"
+                onload="resizeIframe(this)"
+                title="Section {{ section.section.id }}"
+            ></iframe>
+        </div>
+        {% endfor %}
+    </main>
+
+    <!-- 🌐 Global Footer -->
+    {% if footer_section %}
+    <footer>
+        <div id="section-{{ footer_section.id }}" class="iframe-wrapper section-type-footer">
+            <iframe
+                src="/static/section_assets/{{ footer_section.id }}/preview.html"
+                onload="resizeIframe(this)"
+                title="Footer Section"
+            ></iframe>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- 📐 Auto-Resize Iframes -->
+    <script>
+    function resizeIframe(iframe) {
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        function tryResize() {
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                const body = doc.body;
+                const html = doc.documentElement;
+
+                if (body && html) {
+                    const height = Math.max(
+                        body.scrollHeight,
+                        body.offsetHeight,
+                        html.clientHeight,
+                        html.scrollHeight,
+                        html.offsetHeight
+                    );
+                    iframe.style.height = height + 'px';
+                } else if (attempts < maxAttempts) {
+                    attempts++;
+                    setTimeout(tryResize, 500);
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not resize iframe. Might be cross-origin:', e);
+            }
+        }
+
+        tryResize();
+    }
+    </script>
+
+</body>
+</html>

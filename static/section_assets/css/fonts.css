@@ -1,0 +1,29 @@
+@font-face {
+    font-family: 'rimowa-icons';
+    src: url('/static/fonts/rimowa-icons.woff2') format('woff2'),
+         url('/static/fonts/rimowa-icons.woff') format('woff'),
+         url('/static/fonts/rimowa-icons.ttf') format('truetype'),
+         url('/static/section_assets/images/rimowa-icons.svg') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'RimowaGroteskLight';
+    src: url('/static/fonts/RimowaGrotesk-Light.woff2') format('woff2'),
+         url('/static/fonts/RimowaGrotesk-Light.woff') format('woff'),
+         url('https://www.rimowa.com/on/demandware.static/Sites-Rimowa-Site/-/en_IN/v1750436418454/fonts/RimowaGrotesk-Light.ttf?abw49b') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Favorit-Light';
+    src: url('/static/fonts/Favorit-Light.woff2') format('woff2'),
+         url('/static/fonts/Favorit-Light.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}

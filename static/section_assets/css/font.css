@@ -1,0 +1,54 @@
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-Italic.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-Italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-Bold.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-BoldItalic.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-BoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-SemiBoldItalic.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-SemiBoldItalic.woff') format('woff');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-Regular.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Airtel Sans';
+    src: url('/static/fonts//static/fonts/AirtelSans-SemiBold.woff2') format('woff2'),
+        url('/static/fonts/AirtelSans-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+

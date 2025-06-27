@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Edit Section: {{ section.name }}</title>
+
+  <!-- GrapesJS -->
+  <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/grapesjs/dist/grapes.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      font-family: sans-serif;
+      height: 100%;
+    }
+    #gjs {
+      height: 90vh;
+      border: 1px solid #ccc;
+      margin: 10px;
+    }
+    .actions {
+      margin: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2 style="margin: 10px;">🛠 Editing Section: {{ section.name }}</h2>
+
+<form method="POST" onsubmit="return saveHtml();">
+  {% csrf_token %}
+  <textarea name="html_content" id="html_input" style="display:none;"></textarea>
+  <textarea name="css_content" id="css_input" style="display:none;"></textarea>
+
+  <div id="gjs">
+    {% if section_inner_html %}
+      {{ section_inner_html|safe }}
+    {% else %}
+      <div>
+        <h2>Welcome</h2>
+        <p>Double-click to edit this text</p>
+        <img src="https://via.placeholder.com/300x150" alt="Example image" />
+        <button>Click Me</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="actions">
+    <button type="submit">💾 Save Changes</button>
+  </div>
+</form>
+<script>
+  const editor = grapesjs.init({
+    container: '#gjs',
+    fromElement: true,
+    height: '90vh',
+    storageManager: false,
+
+    blockManager: {
+      appendTo: 'body',
+      blocks: [
+        {
+          id: 'text',
+          label: 'Text',
+          category: 'Basic',
+          content: '<div><p>Editable Text</p></div>',
+        },
+        {
+          id: 'heading',
+          label: 'Heading',
+          category: 'Basic',
+          content: '<h2>Editable Heading</h2>',
+        },
+        {
+          id: 'button',
+          label: 'Button',
+          category: 'Basic',
+          content: '<button>Click Me</button>',
+        },
+        {
+          id: 'image',
+          label: 'Image',
+          category: 'Basic',
+          content: '<img src="https://via.placeholder.com/300x150" alt="Image"/>',
+        }
+      ]
+    },
+
+    assetManager: {
+      upload: false,
+      assets: [
+        'https://via.placeholder.com/300x150',
+        'https://via.placeholder.com/400x200',
+        '/static/section_assets/28/images/storage-card1-2.webp',
+        '/static/section_assets/28/images/storage-card2-1.webp',
+        '/static/section_assets/28/images/storage-card3-1.webp',
+      ]
+    }
+  });
+
+  // ✅ Convert ALL <img> tags in HTML into editable GrapesJS image components
+  editor.on('load', () => {
+    const wrapper = editor.DomComponents.getWrapper();
+    const imgs = wrapper.find('img');
+
+    imgs.forEach(img => {
+      // Rebuild image with GrapesJS image component behavior
+      img.set({
+        type: 'image',
+        editable: true,
+        draggable: true,
+        attributes: {
+          src: img.getAttributes().src || '',
+          alt: img.getAttributes().alt || 'Image'
+        }
+      });
+    });
+  });
+
+  // 🖱️ Allow double-click to replace the image using asset manager
+  editor.on('component:dblclick', comp => {
+    if (comp.is('image')) {
+      editor.runCommand('open-assets', {
+        target: comp,
+        types: ['image']
+      });
+    }
+  });
+
+  function saveHtml() {
+    const html = editor.getHtml();
+    const css = editor.getCss();
+
+    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>${css}</style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+
+    document.getElementById('html_input').value = fullHtml;
+    document.getElementById('css_input').value = css;
+    return true;
+  }
+</script>
+
+
+</body>
+</html>

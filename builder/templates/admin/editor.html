@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Editor</title>
+    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/grapesjs"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; }
+        #gjs { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="gjs">{{ html_content|safe }}</div>
+
+    <script>
+    const editor = grapesjs.init({
+        container: '#gjs',
+        height: '100%',
+        fromElement: true,
+        storageManager: { type: null },
+        panels: { defaults: [] }
+    });
+
+    // Save button
+    editor.Panels.addButton('options', [{
+        id: 'save',
+        className: 'btn-save',
+        label: '💾 Save',
+        command(editor) {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            const full = `<html><head><style>${css}</style></head><body>${html}</body></html>`;
+            fetch("", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ html: full })
+            }).then(res => res.json()).then(data => {
+                alert("✅ Saved!");
+                window.location.href = data.redirect;
+            });
+        }
+    }]);
+    </script>
+</body>
+</html>
