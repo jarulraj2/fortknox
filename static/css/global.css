@@ -21,7 +21,7 @@ header iframe {
         footer iframe {
             min-height: 150px;
         }
-        div#section-42 iframe{
+        div#section-3 iframe{
             height: 100vh !important;
     overflow: hidden;
         }
@@ -29,3 +29,9 @@ header iframe {
             height: 100vh;
             overflow: hidden;
         }
+/* logo */
+        #imsi {
+    width: 100%;
+    color: rgb(164, 96, 96);
+    height: 40px;
+}
