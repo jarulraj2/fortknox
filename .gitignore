@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Django
+*.log
+*.pot
+*.pyc
+*.sqlite3
+db.sqlite3
+
+# Django media & static (optional, unless you serve from here)
+media/
+staticfiles/
+static_root/
+static/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.VENV/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations (optional, if auto-generated per environment)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+*/migrations/*.log
+
+# Node (if using npm/yarn)
+node_modules/
+
+# Env files
+.env
+.env.*
+
+# Compiled files
+*.so
+*.egg-info/
+dist/
+build/
+
+# Playwright/browser/AI tools (if used)
+playwright-report/
+__snapshots__/
+*.webm
+*.mhtml
+
+# Git-ignored output
+*.bak
+*.swp
+*~
