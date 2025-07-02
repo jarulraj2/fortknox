@@ -1,5 +1,9 @@
 from django.db import models
 from django.utils.text import slugify
+import os
+import cssutils
+from django import forms
+from django.conf import settings
 
 
 class WebSection(models.Model):
@@ -80,6 +84,26 @@ class PageSection(models.Model):
     def __str__(self):
         return f"{self.page.title} - {self.section.name} (Order {self.order})"
 
+class EditableCSS(models.Model):
+    name = models.CharField(max_length=100, default='global')
+    file_path = models.CharField(max_length=255, default='static/css/global.css')
+
+    def __str__(self):
+        return self.name
     
 
+class EditableJS(models.Model):
+    name = models.CharField(max_length=100, default='global')
+    file_path = models.CharField(max_length=255, default='static/js/global.js')
+
+    def __str__(self):
+        return self.name
     
+class EditableJSHistory(models.Model):
+    editable_js = models.ForeignKey('EditableJS', on_delete=models.CASCADE)
+    edited_at = models.DateTimeField(auto_now_add=True)
+    previous_content = models.TextField()
+    new_content = models.TextField()
+
+    def __str__(self):
+        return f"Edit on {self.edited_at.strftime('%Y-%m-%d %H:%M:%S')}"

@@ -8,8 +8,8 @@ from playwright.sync_api import sync_playwright
 
 BLOCKED_DOMAINS = [
     "analytics", "facebook", "googletagmanager", "doubleclick",
-    "adsbygoogle", "portalappindustryservice", "excpt.ulanqab", "serving-sys",
-    "clevertap", "webengage", "admitad"
+    "adsbygoogle", "portalappindustryservice", "excpt.ulanqab",
+    "serving-sys", "clevertap", "webengage", "admitad"
 ]
 
 def is_safe_url(url):
@@ -31,7 +31,6 @@ def clean_filename_from_url(url):
     return name.split("?")[0]
 
 def clean_css_remove_fonts(css):
-    # Removes @font-face blocks
     return re.sub(r'@font-face\s*{[^}]+}', '', css, flags=re.DOTALL)
 
 def download_css_images(css, base_url, image_dir, section_id):
@@ -68,17 +67,38 @@ def process_inline_styles(section_html, section, image_dir):
 
 def fetch_section_snapshot(section):
     section_id = section.id
-
-    # Directories
     base_dir = os.path.join(settings.BASE_DIR, 'static', 'section_assets', str(section_id))
     html_path = os.path.join(base_dir, 'preview.html')
     image_dir = os.path.join(base_dir, 'images')
     os.makedirs(image_dir, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(section.source_url, timeout=60000)
+        try:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-blink-features=AutomationControlled",
+                    "--disable-features=IsolateOrigins,site-per-process",
+                    "--ignore-certificate-errors",
+                    "--disable-http2"
+                ]
+            )
+            context = browser.new_context(user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/117.0.0.0 Safari/537.36"
+            ))
+            page = context.new_page()
+            page.goto(section.source_url, timeout=60000, wait_until="load")
+        except Exception as e:
+            print(f"❌ Chromium failed, falling back to Firefox: {e}")
+            browser = p.firefox.launch(headless=True)
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto(section.source_url, timeout=60000, wait_until="load")
+
         page.wait_for_timeout(3000)
 
         try:
@@ -92,7 +112,6 @@ def fetch_section_snapshot(section):
         soup = BeautifulSoup(page.content(), "html.parser")
         section_html = BeautifulSoup(outer_html, "html.parser")
 
-        # Extract and clean CSS
         final_css = ""
         for link in soup.find_all("link", rel="stylesheet"):
             href = link.get("href")
@@ -115,11 +134,9 @@ def fetch_section_snapshot(section):
                 continue
             final_css += css_text + "\n"
 
-        # Remove all <link>, <style>, <script> from cloned section
         for tag in section_html.find_all(["link", "style", "script"]):
             tag.decompose()
 
-        # Download images/videos from <img>, <video>, <source>
         for tag in section_html.find_all(["img", "video", "source"]):
             attr = "src" if tag.has_attr("src") else "srcset" if tag.has_attr("srcset") else None
             if attr:
@@ -134,10 +151,8 @@ def fetch_section_snapshot(section):
                 if download_file(full_url, media_path):
                     tag[attr] = f"/static/section_assets/{section_id}/images/{media_name}"
 
-        # Process inline background-image styles
         process_inline_styles(section_html, section, image_dir)
 
-        # Final HTML structure
         html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -147,9 +162,7 @@ def fetch_section_snapshot(section):
   <link rel="stylesheet" href="/static/css/font.css">
   <style>
     {final_css}
-    * {{
-        font-family: 'Inter', sans-serif !important;
-    }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
   </style>
 </head>
 <body>

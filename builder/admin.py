@@ -9,9 +9,19 @@ from django.template.response import TemplateResponse
 from django.template.loader import render_to_string
 from bs4 import BeautifulSoup
 
-from .models import WebSection, CustomPage, PageSection
+from .models import WebSection, CustomPage, PageSection, EditableCSS
 from .utils.web_cloner import fetch_section_snapshot
 
+
+from .forms import EditableCSSForm
+from django import forms
+from cssbeautifier import beautify as css_beautify 
+from csscompressor import compress 
+from jsbeautifier import beautify 
+
+from .models import EditableJS
+from .forms import EditableJSForm
+from .models import EditableJSHistory
 
 @admin.register(WebSection)
 class WebSectionAdmin(admin.ModelAdmin):
@@ -180,3 +190,24 @@ class CustomPageAdmin(admin.ModelAdmin):
             "section_inner_html": full_html,
             "form_action": request.get_full_path(),
         })
+class EditableCSSAdmin(admin.ModelAdmin):
+    form = EditableCSSForm
+
+    class Media:
+        js = ['/static/js/css_minify_button.js']  # ✅ This includes the minify script
+
+admin.site.register(EditableCSS, EditableCSSAdmin)
+
+
+@admin.register(EditableJS)
+class EditableJSAdmin(admin.ModelAdmin):
+    form = EditableJSForm
+
+    class Media:
+        js = ('js/minify_button.js',) 
+
+class EditableJSHistoryAdmin(admin.ModelAdmin):
+    list_display = ['editable_js', 'edited_at']
+    readonly_fields = ['editable_js', 'edited_at', 'previous_content', 'new_content']
+
+admin.site.register(EditableJSHistory, EditableJSHistoryAdmin)
