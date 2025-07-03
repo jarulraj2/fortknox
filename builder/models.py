@@ -87,7 +87,7 @@ class PageSection(models.Model):
 class EditableCSS(models.Model):
     name = models.CharField(max_length=100, default='global')
     file_path = models.CharField(max_length=255, default='static/css/global.css')
-
+    version = models.PositiveIntegerField(default=0)
     def __str__(self):
         return self.name
     

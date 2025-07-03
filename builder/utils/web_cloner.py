@@ -1,4 +1,5 @@
 import os
+import sys
 import re
 import requests
 from urllib.parse import urljoin, urlparse
@@ -66,14 +67,22 @@ def process_inline_styles(section_html, section, image_dir):
                 tag['style'] = tag['style'].replace(img_url, local_url)
 
 def fetch_section_snapshot(section):
+    # ✅ Patch sys.stderr to avoid mod_wsgi crash
+    if not hasattr(sys.stderr, 'fileno'):
+        sys.stderr = open(os.devnull, 'w')
+
     section_id = section.id
     base_dir = os.path.join(settings.BASE_DIR, 'static', 'section_assets', str(section_id))
     html_path = os.path.join(base_dir, 'preview.html')
     image_dir = os.path.join(base_dir, 'images')
+
+    # ✅ Ensure directories exist
+    os.makedirs(base_dir, exist_ok=True)
     os.makedirs(image_dir, exist_ok=True)
 
     with sync_playwright() as p:
         try:
+            # Launch Chromium first
             browser = p.chromium.launch(
                 headless=True,
                 args=[
@@ -85,20 +94,17 @@ def fetch_section_snapshot(section):
                     "--disable-http2"
                 ]
             )
-            context = browser.new_context(user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/117.0.0.0 Safari/537.36"
-            ))
-            page = context.new_page()
-            page.goto(section.source_url, timeout=60000, wait_until="load")
         except Exception as e:
             print(f"❌ Chromium failed, falling back to Firefox: {e}")
             browser = p.firefox.launch(headless=True)
-            context = browser.new_context()
-            page = context.new_page()
-            page.goto(section.source_url, timeout=60000, wait_until="load")
 
+        context = browser.new_context(user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/117.0.0.0 Safari/537.36"
+        ))
+        page = context.new_page()
+        page.goto(section.source_url, timeout=60000, wait_until="load")
         page.wait_for_timeout(3000)
 
         try:

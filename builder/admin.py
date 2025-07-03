@@ -1,5 +1,5 @@
 import os
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.urls import path, reverse
 from django.shortcuts import redirect
 from django.utils.html import format_html
@@ -22,6 +22,9 @@ from jsbeautifier import beautify
 from .models import EditableJS
 from .forms import EditableJSForm
 from .models import EditableJSHistory
+from django.http import HttpResponseRedirect
+import subprocess
+import sys
 
 @admin.register(WebSection)
 class WebSectionAdmin(admin.ModelAdmin):
@@ -49,16 +52,60 @@ class WebSectionAdmin(admin.ModelAdmin):
         return format_html('<a class="button" href="{}" target="_blank" style="background:#198754; color:white; padding:4px 8px; border-radius:4px;">🛠 Edit Section</a>', reverse('admin:edit_section_html', args=[obj.pk]))
     editor_button.short_description = "GrapesJS Editor"
 
+    # def fetch_section(self, request, section_id):
+    #     section = WebSection.objects.get(pk=section_id)
+    #     html = fetch_section_snapshot(section)
+    #     if html:
+    #         section.html_content = html
+    #         section.save()
+    #         self.message_user(request, f"✅ HTML fetched for: {section.name}")
+    #     else:
+    #         self.message_user(request, f"❌ Failed to fetch HTML for: {section.name}", level='error')
+    #     return redirect("admin:builder_websection_change", section_id)
+    
     def fetch_section(self, request, section_id):
-        section = WebSection.objects.get(pk=section_id)
-        html = fetch_section_snapshot(section)
-        if html:
-            section.html_content = html
-            section.save()
-            self.message_user(request, f"✅ HTML fetched for: {section.name}")
-        else:
-            self.message_user(request, f"❌ Failed to fetch HTML for: {section.name}", level='error')
+        import subprocess
+        import os
+
+        script_path = os.path.join(settings.BASE_DIR, "fetch_snapshot_script.py")
+        #python_path = os.path.join(settings.BASE_DIR, "venv", "bin", "python")  # adjust if needed
+        python_path = os.path.join(settings.BASE_DIR, "venv", "bin", "python") 
+
+        # ✅ Add Playwright environment fix
+        env = {
+            **os.environ,
+            "DJANGO_SETTINGS_MODULE": "cloneproject.settings",
+            "PLAYWRIGHT_BROWSERS_PATH": "0"
+        }
+
+        try:
+            result = subprocess.run(
+                [python_path, script_path, str(section_id)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=180,
+                cwd=settings.BASE_DIR,
+                env=env  # ✅ use updated env
+            )
+
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip()
+
+            if result.returncode == 0:
+                self.message_user(request, f"✅ HTML fetched successfully.\n{stdout}")
+            else:
+                msg = f"❌ Script failed with return code {result.returncode}\n🔹 STDOUT:\n{stdout}\n\n🔻 STDERR:\n{stderr}"
+                self.message_user(request, msg, level='error')
+
+        except subprocess.TimeoutExpired:
+            self.message_user(request, "❌ Script timed out.", level='error')
+
+        except Exception as e:
+            self.message_user(request, f"❌ Exception: {e}", level='error')
+
         return redirect("admin:builder_websection_change", section_id)
+
 
     def edit_section_view(self, request, section_id):
         section = WebSection.objects.get(pk=section_id)
@@ -194,10 +241,19 @@ class EditableCSSAdmin(admin.ModelAdmin):
     form = EditableCSSForm
 
     class Media:
-        js = ['/static/js/css_minify_button.js']  # ✅ This includes the minify script
+        js = [
+            '/static/js/css_minify_button.js',      # your existing script
+            '/static/js/css_cache_buster.js',       # 👈 added script for cache busting
+        ]
+
+    def response_change(self, request, obj):
+        messages.success(request, "✅ CSS updated successfully and applied.")
+        # Refresh the same admin page after saving
+        return HttpResponseRedirect(
+            reverse('admin:builder_editablecss_change', args=(obj.pk,))
+        )
 
 admin.site.register(EditableCSS, EditableCSSAdmin)
-
 
 @admin.register(EditableJS)
 class EditableJSAdmin(admin.ModelAdmin):

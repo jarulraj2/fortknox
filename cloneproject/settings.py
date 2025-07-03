@@ -64,6 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'builder.context_processors.version_tag',
             ],
         },
     },
@@ -149,3 +150,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
+
+from decouple import config
+
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", cast=bool, default=False)

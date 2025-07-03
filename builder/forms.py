@@ -4,7 +4,7 @@ from django.conf import settings
 from .models import EditableCSS, EditableJS, EditableJSHistory
 from rjsmin import jsmin  # Minifier for JavaScript
 
-# ---------- Editable CSS Form ----------
+# ---------- Editable CSS Form ----------class EditableCSSForm(forms.ModelForm):
 class EditableCSSForm(forms.ModelForm):
     css_content = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 30, 'cols': 120}),
@@ -30,16 +30,41 @@ class EditableCSSForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         css_data = self.cleaned_data['css_content']
-        full_path = os.path.join(settings.BASE_DIR, instance.file_path)
 
-        # ✅ Write updated CSS to file
-        with open(full_path, 'w', encoding='utf-8') as f:
+        # Save to main path
+        main_path = os.path.join(settings.BASE_DIR, instance.file_path)
+        with open(main_path, 'w', encoding='utf-8') as f:
             f.write(css_data)
+
+        # Also save to global.css
+        global_css_path = os.path.join(settings.BASE_DIR, 'static/css/global.css')
+        if main_path != global_css_path:
+            try:
+                with open(global_css_path, 'w', encoding='utf-8') as f:
+                    f.write(css_data)
+            except Exception as e:
+                print(f"Error writing to global.css: {e}")
+
+        # 🔢 Create versioned CSS file: global.vXX.css
+        version_num = (instance.version + 1) % 100  # Loop 00–99
+        version_str = f"{version_num:02d}"  # 2-digit format
+        versioned_filename = f"global.v{version_str}.css"
+        versioned_path = os.path.join(settings.BASE_DIR, 'static/css', versioned_filename)
+
+        try:
+            with open(versioned_path, 'w', encoding='utf-8') as f:
+                f.write(css_data)
+        except Exception as e:
+            print(f"Error writing versioned CSS file: {e}")
+
+        # Save version number in model
+        instance.version = version_num
+        instance.file_path = f'static/css/{versioned_filename}'
 
         if commit:
             instance.save()
-        return instance
 
+        return instance
 
 # ---------- Editable JS Form ----------
 class EditableJSForm(forms.ModelForm):
