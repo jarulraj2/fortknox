@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.2 (57519) - http://www.bohemiancoding.com/sketch -->
+    <title>exit-white</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="20.-Desktop-UI-Elements" transform="translate(-637.000000, -1199.000000)" fill="#FFFFFF">
+            <g id="Exit" transform="translate(141.000000, 1105.000000)">
+                <g transform="translate(0.000000, 68.000000)" id="hover">
+                    <g transform="translate(472.566406, 3.851562)">
+                        <g transform="translate(1.433594, 0.515625)" id="exit-white">
+                            <g transform="translate(22.000000, 22.000000)">
+                                <rect id="Rectangle" transform="translate(8.000000, 8.000000) rotate(-315.000000) translate(-8.000000, -8.000000) " x="-1.6" y="6.8" width="19.2" height="2.4"></rect>
+                                <rect id="Rectangle" transform="translate(8.000000, 8.000000) rotate(-45.000000) translate(-8.000000, -8.000000) " x="-1.6" y="6.8" width="19.2" height="2.4"></rect>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
