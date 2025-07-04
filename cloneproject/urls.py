@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/builder/', include('builder.urls')),
     path('', include('builder.urls')),
     path('builder/', include('builder.urls')),
+    path('cloudweb/', include('cloudweb.urls')),
 ] + static(settings.STATIC_URL, document_root=os.path.join(settings.BASE_DIR, 'static'))
 
 if settings.DEBUG:
