@@ -43,14 +43,19 @@ class Section(models.Model):
         ('custom', 'Custom'),
     ]
 
-    page = models.ForeignKey(Page, related_name='sections', on_delete=models.CASCADE, null=False)
-    section_type = models.CharField(max_length=50, choices=SECTION_TYPES, default='custom', null=False, blank=False)
-    title = models.CharField(max_length=200, default='', null=True, blank=True)
-    content = models.TextField(default='', null=True, blank=True)
-    order = models.PositiveIntegerField(default=0, null=False, blank=False)
+    page = models.ForeignKey(Page, related_name='sections', on_delete=models.CASCADE)
+    section_type = models.CharField(max_length=50, choices=SECTION_TYPES, default='custom')
+    title = models.CharField(max_length=200, blank=True, default='')
+    content = models.TextField(blank=True, default='')  # Optional text content
+    image = models.ImageField(upload_to='section_images/', blank=True, null=True)
+    button_text = models.CharField(max_length=100, blank=True, default='')
+    custom_css = models.TextField(blank=True, null=True)
+    grapesjs_html = models.TextField(blank=True, null=True)  # HTML saved from GrapesJS
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
         return f"{self.page.title} - {self.section_type}"
+
