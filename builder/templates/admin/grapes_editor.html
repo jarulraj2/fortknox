@@ -39,26 +39,15 @@
   {% endfor %}
 {% endif %}
 
-<form method="POST" action="{{ form_action }}" id="grapes-form" onsubmit="return saveHtml();">
+<form method="POST" action="{{ form_action }}" id="grapes-form">
   {% csrf_token %}
   <textarea name="html_content" id="html_input" style="display:none;"></textarea>
   <textarea name="css_content" id="css_input" style="display:none;"></textarea>
 
   <div id="gjs">
-    {% if section_inner_html %}
-      {{ section_inner_html|safe }}
-    {% else %}
-      <div>
-        <h2>Welcome</h2>
-        <p>Double-click to edit this text</p>
-        <img src="/static/section_assets/{{ section.id }}/images/sample.jpg" alt="Example image" />
-        <a href="https://example.com" target="_blank">Sample Link</a>
-        <button>Click Me</button>
-      </div>
-    {% endif %}
+    {{ section_inner_html|safe }}
   </div>
 
-  <!-- ✅ SAVE BUTTON OUTSIDE the #gjs -->
   <div class="actions">
     <button type="submit" id="save-button">💾 Save Changes</button>
   </div>
@@ -98,177 +87,50 @@
       ]
     },
 
-
-  /** Image upload  **/idassetManager: {
-  upload: `/builder/upload-to-static/${sectionId}/`, // Your Django upload URL
-  uploadName: 'file',
-
-  customFetch: (url, options) => {
-    console.log("⬆️ File upload initiated...");
-
-    const formData = new FormData();
-
-    // ✅ Safety check: only proceed if the body is a File object
-    if (options.body instanceof File) {
-      // Optional: Limit file type
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp', 'image/gif'];
-      if (!allowedTypes.includes(options.body.type)) {
-        alert("❌ Only images (PNG, JPG, SVG, etc.) are allowed!");
-        return Promise.reject("Unsupported file type");
-      }
-
-      formData.append('file', options.body);
-    } else {
-      console.error("❌ Upload failed: `options.body` is not a File", options.body);
-      return Promise.reject("Invalid upload body");
-    }
-
-    return fetch(url, {
-      method: 'POST',
-      body: formData, // ✅ Automatically sets multipart/form-data
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(result => {
-        if (result.data && Array.isArray(result.data)) {
-          editor.AssetManager.add(result.data);
-          console.log("✅ Uploaded", result.data);
+    assetManager: {
+      upload: `/builder/upload-to-static/${sectionId}/`,
+      uploadName: 'file',
+      customFetch: (url, options) => {
+        const formData = new FormData();
+        if (options.body instanceof File) {
+          formData.append('file', options.body);
         } else {
-          console.error("❌ Upload failed: Bad response format", result);
+          return Promise.reject("Invalid upload body");
         }
-      })
-      .catch(err => {
-        console.error("❌ Upload error:", err);
-      });
-  },
-
-  assets: [] // Optionally preload existing assets
-}
-
-
-
-  });
-
-  // Load existing assets
-  fetch(`/builder/list-assets/${sectionId}/`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.assets && Array.isArray(data.assets)) {
-        editor.AssetManager.add(data.assets);
-        console.log("✅ Loaded assets", data.assets);
-      }
-    });
-
-  editor.on('load', () => {
-    const imgs = editor.DomComponents.getWrapper().find('img');
-    imgs.forEach(img => {
-      img.set({
-        type: 'image',
-        traits: [
-          { type: 'text', name: 'alt', label: 'Alt Text' },
-          { type: 'text', name: 'width', label: 'Width' },
-          { type: 'text', name: 'height', label: 'Height' },
-          {
-            type: 'select',
-            name: 'object-fit',
-            label: 'Object Fit',
-            options: [
-              { value: '', name: 'Default' },
-              { value: 'fill', name: 'Fill' },
-              { value: 'contain', name: 'Contain' },
-              { value: 'cover', name: 'Cover' },
-              { value: 'none', name: 'None' },
-              { value: 'scale-down', name: 'Scale-down' },
-            ],
+        return fetch(url, {
+          method: 'POST',
+          body: formData,
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.data && Array.isArray(result.data)) {
+            editor.AssetManager.add(result.data);
           }
-        ]
-      });
-
-      img.on('change:attributes:object-fit', () => {
-        const fit = img.getAttributes()['object-fit'];
-        img.addStyle({ objectFit: fit || '' });
-      });
-    });
-  });
-
-  editor.on('component:dblclick', comp => {
-    if (comp.is('image')) {
-      editor.runCommand('open-assets', {
-        target: comp,
-        types: ['image']
-      });
+        });
+      },
+      assets: []
     }
   });
-
-  editor.DomComponents.addType('link', {
-    isComponent: el => el.tagName === 'A',
-    model: {
-      defaults: {
-        traits: [
-          { type: 'text', name: 'href', label: 'URL' },
-          { type: 'checkbox', name: 'target', label: 'Open in new tab', valueTrue: '_blank', valueFalse: '' }
-        ]
-      }
-    }
-  });
-
-  // ✅ Save HTML before form submit
-  function saveHtml() {
-    console.log("💾 Saving HTML from GrapesJS editor...");
-    const html = editor.getHtml();
-    const css = editor.getCss();
-
-    const fullHtml = `<!DOCTYPE html>
-<html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>${css}</style></head><body>${html}</body></html>`;
-
-    document.getElementById('html_input').value = fullHtml;
-    document.getElementById('css_input').value = css;
-
-    return true; // allow submit
-  }
-
-  // 🔥 Log form submission attempt
-  // document.addEventListener("DOMContentLoaded", () => {
-  //   document.getElementById("grapes-form").addEventListener("submit", (e) => {
-  //     console.log("🔥 FORM submit event triggered");
-  //   });
-
-  //       document.getElementById("save-button").addEventListener("click", () => {
-  //         console.log("✅ Save button clicked");
-  //       });
-  // });
-
 
   document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("save-button");
-  const form = document.getElementById("grapes-form");
+    const saveBtn = document.getElementById("save-button");
+    const form = document.getElementById("grapes-form");
 
-  saveBtn.addEventListener("click", () => {
-    console.log("✅ Save button clicked");
-
-    // Step 1: Get HTML/CSS from GrapesJS editor
-    const html = editor.getHtml();
-    const css = editor.getCss();
-
-    // Step 2: Create full HTML with inline CSS
-    const fullHtml = `<!DOCTYPE html>
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const html = editor.getHtml();
+      const css = editor.getCss();
+      const fullHtml = `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>${css}</style></head><body>${html}</body></html>`;
 
-    // Step 3: Set hidden form fields
-    document.getElementById("html_input").value = fullHtml;
-    document.getElementById("css_input").value = css;
+      document.getElementById("html_input").value = fullHtml;
+      document.getElementById("css_input").value = css;
 
-    console.log("📤 Submitting form...");
-    // Step 4: Submit form manually
-    form.submit();
+      form.submit();
+    });
   });
-});
 </script>
 
 </body>

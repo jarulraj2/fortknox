@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 from .models import WebSection, CustomPage, PageSection
 from .utils.web_cloner import fetch_section_snapshot
-
+from django.shortcuts import redirect, get_object_or_404
 
 @admin.register(WebSection)
 class WebSectionAdmin(admin.ModelAdmin):
@@ -51,7 +51,7 @@ class WebSectionAdmin(admin.ModelAdmin):
         return redirect("admin:builder_websection_change", section_id)
 
     def edit_section_view(self, request, section_id):
-        section = WebSection.objects.get(pk=section_id)
+        section = get_object_or_404(WebSection, pk=section_id)
 
         if request.method == "POST":
             new_html = request.POST.get("html_content", "")
@@ -66,13 +66,13 @@ class WebSectionAdmin(admin.ModelAdmin):
                 with open(os.path.join(section_dir, 'preview.html'), "w", encoding="utf-8") as f:
                     f.write(full_html)
 
-                self.message_user(request, "✅ Section saved with JS wrapper")
+                self.message_user(request, "✅ Section saved successfully!")
                 return redirect("admin:builder_websection_change", section_id)
 
         return TemplateResponse(request, "admin/grapes_editor.html", {
             "section": section,
-            "section_inner_html": section.html_content or "",
             "form_action": request.get_full_path(),
+            "section_inner_html": section.html_content or "",
         })
 
     def preview(self, obj):
