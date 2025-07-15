@@ -39,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'pages',
     'builder',
-    'cloudweb'
+    'cloudweb',
+    'api',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

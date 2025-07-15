@@ -45,17 +45,40 @@ class Section(models.Model):
 
     page = models.ForeignKey(Page, related_name='sections', on_delete=models.CASCADE)
     section_type = models.CharField(max_length=50, choices=SECTION_TYPES, default='custom')
-    title = models.CharField(max_length=200, blank=True, default='')
-    content = models.TextField(blank=True, default='')  # Optional text content
-    image = models.ImageField(upload_to='section_images/', blank=True, null=True)
-    button_text = models.CharField(max_length=100, blank=True, default='')
-    custom_css = models.TextField(blank=True, null=True)
-    grapesjs_html = models.TextField(blank=True, null=True)  # HTML saved from GrapesJS
+    title = models.CharField(max_length=200, blank=True, null=True, default='')
+    sub_title = models.CharField(max_length=300, blank=True, null=True, default='')
+    description = models.TextField(blank=True, null=True, default='')
+    image = models.ImageField(upload_to='section_images/', blank=True, null=True, default='')
+    bottom_text = models.CharField(max_length=200, blank=True, null=True, default='')
+    button_link = models.CharField(max_length=500, blank=True, null=True, default='')
+    full_width = models.BooleanField(default=False)
+    css_class = models.CharField(max_length=200, blank=True, null=True, default='')
+    html_id = models.CharField(max_length=200, blank=True, null=True, default='')
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.page.title} - {self.section_type}"
+        return f"{self.page.title} - {self.section_type} - {self.title}"
+
+
+class SectionCard(models.Model):
+    section = models.ForeignKey(Section, related_name='cards', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200, blank=True, null=True, default='')
+    sub_title = models.CharField(max_length=300, blank=True, null=True, default='')
+    description = models.TextField(blank=True, null=True, default='')
+    image = models.ImageField(upload_to='card_images/', blank=True, null=True, default='')
+    button_text = models.CharField(max_length=100, blank=True, null=True, default='')
+    button_link = models.CharField(max_length=500, blank=True, null=True, default='')
+    css_class = models.CharField(max_length=200, blank=True, null=True, default='')
+    html_id = models.CharField(max_length=200, blank=True, null=True, default='')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Card: {self.title} (Section: {self.section.title})"
+
 
